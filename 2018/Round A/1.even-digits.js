@@ -1,4 +1,5 @@
 const isAllEven = num => {
+  if (num < 10) return num % 2 === 0 ? 0 : 1;
   return (
     num
       .toString()
@@ -8,6 +9,7 @@ const isAllEven = num => {
 };
 
 const getMovementsCount = num => {
+  if (isAllEven(num)) return 0;
   let a = num;
   let b = num;
   while (!isAllEven(a)) {
@@ -17,13 +19,16 @@ const getMovementsCount = num => {
     b--;
   }
   const upwardMovementCount = a - num;
-  const downwardMovmentCount = num - b;
-  return upwardMovementCount > downwardMovmentCount ? downwardMovmentCount : upwardMovementCount;
+  const downwardMovementCount = num - b;
+  return upwardMovementCount > downwardMovementCount ? -downwardMovementCount : upwardMovementCount;
 };
 
 console.time('start');
-console.log(getMovementsCount(42));
-console.log(getMovementsCount(11));
 console.log(getMovementsCount(1));
+console.log(getMovementsCount(11));
+console.log(getMovementsCount(42));
 console.log(getMovementsCount(2018));
+console.log(getMovementsCount(3179));
+console.log(getMovementsCount(113797));
+console.log(getMovementsCount(373797));
 console.timeEnd('start');
