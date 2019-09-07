@@ -1,20 +1,13 @@
-const isAllEvenString = num => {
-  if (num < 10) return num % 2 === 0 ? 0 : 1;
-  return (
-    num
-      .toString()
-      .split('')
-      .filter(x => x % 2 !== 0).length == 0
-  );
-};
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
 
-const isAllEvenNumber = num => {
+const isAllEven = num => {
   if (num < 10) return num % 2 == 0;
-  return isAllEvenNumber(num % 10) && isAllEvenNumber(parseInt(num / 10));
+  return isAllEven(num % 10) && isAllEven(parseInt(num / 10));
 };
 
-const getMovementsCount = (num, useStrFunction) => {
-  const isAllEven = useStrFunction ? isAllEvenString : isAllEvenNumber;
+const getMovementsCount = num => {
   if (isAllEven(num)) return 0;
   let a = num;
   let b = num;
@@ -26,15 +19,30 @@ const getMovementsCount = (num, useStrFunction) => {
   }
   const upwardMovementCount = a - num;
   const downwardMovementCount = num - b;
-  return upwardMovementCount > downwardMovementCount ? -downwardMovementCount : upwardMovementCount;
+  return upwardMovementCount > downwardMovementCount ? downwardMovementCount : upwardMovementCount;
 };
 
-const tests = [1, 42, 2018, 3179, 113797, 3373797, 33373797, 733373797];
+async function readData(filePath) {
+  return new Promise(resolve => {
+    const contentLines = [];
+    readline
+      .createInterface({
+        input: process.env.NODE_ENV === 'test' ? fs.createReadStream(filePath) : process.stdin,
+      })
+      .on('line', line => contentLines.push(line))
+      .on('close', () => {
+        contentLines.shift();
+        const data = [];
+        contentLines.forEach(v => data.push(v));
+        return resolve(data);
+      });
+  });
+}
 
-console.time('Number function');
-tests.forEach(getMovementsCount);
-console.timeEnd('Number function');
-
-console.time('String function');
-tests.forEach(input => getMovementsCount(input, 1));
-console.timeEnd('String function');
+const filePath = process.argv[2] || path.join(__dirname, 'input-samples', 'even-digits.txt');
+readData(filePath).then(input => {
+  input.forEach((data, idx) => {
+    const answer = getMovementsCount(Number(data));
+    console.log(`Case #${idx + 1}: ${answer}`);
+  });
+});
