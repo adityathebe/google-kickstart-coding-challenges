@@ -68,7 +68,7 @@ async function readData(filePath) {
         const data = [];
         contentLines.forEach((line, idx) => {
           if (idx % 2 === 0) {
-            data.push({ maxRedips: line.split(' ')[1] });
+            data.push({ maxRedips: Number(line.split(' ')[1]) });
           } else {
             data[data.length - 1].items = line.split(' ').map(Number);
           }
