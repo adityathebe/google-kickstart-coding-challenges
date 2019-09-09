@@ -1,3 +1,4 @@
+// @ts-check
 /*
  Problem :: You are participating in the Grand Kickstart Lucky Dip with many fantastic and amazing prizes (and some not so good ones)!
  
@@ -31,46 +32,27 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-function main(items, maxRedips) {
-  const itemSize = items.length;
-  let bestItem = 0;
+/**
+ * Returns max value of a and b
+ * @param {Number} a
+ * @param {Number} b
+ * @returns {Number}
+ */
+const max = (a, b) => (a > b ? a : b);
 
-  // Generate hashmap
-  const hashMap = {};
-  for (const item of items) {
-    hashMap[item] = hashMap[item] ? hashMap[item] + 1 : 1;
-    if (item > bestItem) {
-      bestItem = item;
-    }
-  }
-
-  // Establish probability hash map & Perform redips
+/**
+ * @param {Number[]} items Array of item
+ * @param {Number} maxRedips
+ */
+function getExpectedValue(items, maxRedips) {
   let redipsAvailable = maxRedips;
-  let bestEstimatedValue = 0;
-  const probabilityHashMap = {};
+  let expectedValue = 0;
   do {
-    for (const item in hashMap) {
-      const frequency = hashMap[item];
-      const probability = frequency / itemSize;
-      probabilityHashMap[item] = probabilityHashMap[item] ? probabilityHashMap[item] * probability : probability;
-    }
-
-    // Measure estimated value
-    let estimatedValueComp = 0;
-    let complementProbability = 0;
-    for (const item in hashMap) {
-      if (Number(item) == bestItem) continue;
-      estimatedValueComp += probabilityHashMap[item] * Number(item);
-      complementProbability += probabilityHashMap[item];
-    }
-    const estimatedValue = bestItem * (1 - complementProbability) + estimatedValueComp;
-
+    const sumOfVals = items.reduce((prev, cur) => prev + max(cur, expectedValue));
+    expectedValue = sumOfVals / items.length;
     redipsAvailable -= 1;
-    if (estimatedValue <= bestEstimatedValue) continue;
-    bestEstimatedValue = estimatedValue;
   } while (redipsAvailable >= 0);
-
-  return bestEstimatedValue;
+  return expectedValue;
 }
 
 async function readData(filePath) {
@@ -80,17 +62,15 @@ async function readData(filePath) {
       .createInterface({
         input: process.env.NODE_ENV === 'test' ? fs.createReadStream(filePath) : process.stdin,
       })
-      .on('line', function(line) {
-        contentLines.push(line);
-      })
+      .on('line', line => contentLines.push(line))
       .on('close', () => {
         contentLines.shift();
         const data = [];
         contentLines.forEach((line, idx) => {
-          if (idx % 2 == 0) {
+          if (idx % 2 === 0) {
             data.push({ maxRedips: line.split(' ')[1] });
           } else {
-            data[data.length - 1].items = line.split(' ');
+            data[data.length - 1].items = line.split(' ').map(Number);
           }
         });
         return resolve(data);
@@ -102,7 +82,7 @@ const filePath = process.argv[2] || path.join(__dirname, 'input-samples', 'lucky
 readData(filePath).then(input => {
   input.forEach((data, idx) => {
     const { maxRedips, items } = data;
-    const answer = main(items, maxRedips);
+    const answer = getExpectedValue(items, maxRedips);
     console.log(`Case #${idx + 1}: ${answer.toFixed(6)}`);
   });
 });
